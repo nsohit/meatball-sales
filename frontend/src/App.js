@@ -926,38 +926,38 @@ const StockManagementPage = () => {
         <>
           <Card>
             <CardHeader>
-              <div className=\"flex items-center justify-between\">
+              <div className="flex items-center justify-between">
                 <CardTitle>Rekap Stok Harian</CardTitle>
-                <Button variant=\"destructive\" size=\"sm\" onClick={handleDeleteStock} data-testid=\"delete-stock-btn\">
+                <Button variant="destructive" size="sm" onClick={handleDeleteStock} data-testid="delete-stock-btn">
                   Hapus Data Stok
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className=\"overflow-x-auto\">
-                <table className=\"w-full text-sm\">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
                   <thead>
-                    <tr className=\"border-b\">
-                      <th className=\"text-left p-2\">Item</th>
-                      <th className=\"text-right p-2\">Dibawa</th>
-                      <th className=\"text-right p-2\">Terjual (Kalkulasi)</th>
-                      <th className=\"text-right p-2\">Sisa</th>
-                      <th className=\"text-right p-2\">Terbuang</th>
+                    <tr className="border-b">
+                      <th className="text-left p-2">Item</th>
+                      <th className="text-right p-2">Dibawa</th>
+                      <th className="text-right p-2">Terjual (Kalkulasi)</th>
+                      <th className="text-right p-2">Sisa</th>
+                      <th className="text-right p-2">Terbuang</th>
                     </tr>
                   </thead>
                   <tbody>
                     {stockItems.map((item) => (
-                      <tr key={item.key} className=\"border-b\">
-                        <td className=\"p-2 font-medium\">{item.label}</td>
-                        <td className=\"text-right p-2\">{stock.stock_brought[item.key]}</td>
-                        <td className=\"text-right p-2 text-blue-600\">{stock.stock_sold_calculated?.[item.key] || 0}</td>
-                        <td className=\"text-right p-2 text-green-600\">
+                      <tr key={item.key} className="border-b">
+                        <td className="p-2 font-medium">{item.label}</td>
+                        <td className="text-right p-2">{stock.stock_brought[item.key]}</td>
+                        <td className="text-right p-2 text-blue-600">{stock.stock_sold_calculated?.[item.key] || 0}</td>
+                        <td className="text-right p-2 text-green-600">
                           {stock.stock_remaining[item.key]}
                           {(item.key === 'pangsit_malang' || item.key === 'soun') && stock.stock_remaining[item.key] === 0 && (
-                            <span className=\"text-xs ml-1\">✓</span>
+                            <span className="text-xs ml-1">✓</span>
                           )}
                         </td>
-                        <td className=\"text-right p-2 text-red-600\">{stock.stock_wasted?.[item.key] || 0}</td>
+                        <td className="text-right p-2 text-red-600">{stock.stock_wasted?.[item.key] || 0}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -970,21 +970,21 @@ const StockManagementPage = () => {
             <CardHeader>
               <CardTitle>Catatan Penting</CardTitle>
             </CardHeader>
-            <CardContent className=\"space-y-2 text-sm\">
-              <div className=\"flex items-start space-x-2\">
-                <span className=\"text-blue-600\">•</span>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-start space-x-2">
+                <span className="text-blue-600">•</span>
                 <p><strong>Terjual (Kalkulasi):</strong> Dihitung otomatis dari transaksi penjualan</p>
               </div>
-              <div className=\"flex items-start space-x-2\">
-                <span className=\"text-green-600\">•</span>
+              <div className="flex items-start space-x-2">
+                <span className="text-green-600">•</span>
                 <p><strong>Sisa:</strong> Barang yang dibawa pulang (kecuali Pangsit & Soun)</p>
               </div>
-              <div className=\"flex items-start space-x-2\">
-                <span className=\"text-red-600\">•</span>
+              <div className="flex items-start space-x-2">
+                <span className="text-red-600">•</span>
                 <p><strong>Terbuang:</strong> Selisih antara stok dibawa, terjual, dan sisa</p>
               </div>
-              <div className=\"flex items-start space-x-2 mt-3 p-2 bg-yellow-50 rounded\">
-                <span className=\"text-yellow-600\">⚠️</span>
+              <div className="flex items-start space-x-2 mt-3 p-2 bg-yellow-50 rounded">
+                <span className="text-yellow-600">⚠️</span>
                 <p><strong>Khusus Pangsit & Soun:</strong> Tidak dibawa pulang, harus habis atau dihitung terbuang</p>
               </div>
             </CardContent>
@@ -994,8 +994,8 @@ const StockManagementPage = () => {
 
       {!stock && !showInitialForm && (
         <Card>
-          <CardContent className=\"py-8\">
-            <p className=\"text-center text-muted-foreground\">Tidak ada data stok untuk tanggal ini</p>
+          <CardContent className="py-8">
+            <p className="text-center text-muted-foreground">Tidak ada data stok untuk tanggal ini</p>
           </CardContent>
         </Card>
       )}
