@@ -624,6 +624,7 @@ const StockManagementPage = () => {
   const [stock, setStock] = useState(null);
   const [showInitialForm, setShowInitialForm] = useState(false);
   const [showRemainingForm, setShowRemainingForm] = useState(false);
+  const [editMode, setEditMode] = useState({ initial: false, remaining: false });
   const [loading, setLoading] = useState(false);
   
   // Initial stock form
