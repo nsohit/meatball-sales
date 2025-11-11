@@ -334,7 +334,7 @@ const TransactionPaketPage = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => addExtraItem(extra.name, option.pcs, option.price)}
-                      data-testid={`add-extra-${extra.name.replace(' ', '-')}-${option.pcs}`}
+                      data-testid={`add-extra-${extra.name.replace(/\s+/g, '-')}-${option.pcs}`}
                     >
                       +{option.pcs} pcs ({formatCurrency(option.price)})
                     </Button>
