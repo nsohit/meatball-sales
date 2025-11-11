@@ -76,6 +76,8 @@ class PackageTransaction(BaseModel):
     package_price: float
     quantity: int = 1
     items: List[TransactionItem]
+    extra_items: List[ExtraItem] = []
+    extra_items_revenue: float = 0
     total_production_cost: float
     revenue: float
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
