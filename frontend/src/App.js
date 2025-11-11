@@ -204,11 +204,11 @@ const TransactionPaketPage = () => {
   
   const availableExtras = [
     { name: 'Bakso urat', prices: [{ pcs: 1, price: 2000 }] },
-    { name: 'Bakso kecil', prices: [{ pcs: 1, price: 500 }, { pcs: 2, price: 1000 }, { pcs: 4, price: 2000 }] },
-    { name: 'Tahu', prices: [{ pcs: 1, price: 500 }, { pcs: 2, price: 1000 }] },
-    { name: 'Somay', prices: [{ pcs: 1, price: 500 }, { pcs: 2, price: 1000 }] },
-    { name: 'Pangsit malang', prices: [{ pcs: 1, price: 500 }, { pcs: 2, price: 1000 }] },
-    { name: 'Soun', prices: [{ pcs: 1, price: 500 }, { pcs: 2, price: 1000 }] },
+    { name: 'Bakso kecil', prices: [{ pcs: 1, price: 2000 }, { pcs: 2, price: 3000 }, { pcs: 4, price: 5000 }] },
+    { name: 'Tahu', prices: [{ pcs: 1, price: 2000 }, { pcs: 2, price: 3000 }] },
+    { name: 'Somay', prices: [{ pcs: 1, price: 2000 }, { pcs: 2, price: 3000 }] },
+    { name: 'Pangsit malang', prices: [{ pcs: 1, price: 2000 }, { pcs: 2, price: 3000 }] },
+    { name: 'Soun', prices: [{ pcs: 1, price: 2000 }, { pcs: 2, price: 3000 }] },
   ];
 
   const addExtraItem = (itemName, pcs, price) => {
