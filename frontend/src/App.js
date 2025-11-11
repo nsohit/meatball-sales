@@ -836,10 +836,9 @@ const StockManagementPage = () => {
                   <thead>
                     <tr className="border-b">
                       <th className="text-left p-2">Item</th>
-                      <th className="text-right p-2">Dibawa</th>
-                      <th className="text-right p-2">Terjual (Kalkulasi)</th>
+                      <th className="text-right p-2">Bawaan</th>
                       <th className="text-right p-2">Sisa</th>
-                      <th className="text-right p-2">Terbuang</th>
+                      <th className="text-right p-2">Terjual</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -847,42 +846,65 @@ const StockManagementPage = () => {
                       <tr key={item.key} className="border-b">
                         <td className="p-2 font-medium">{item.label}</td>
                         <td className="text-right p-2">{stock.stock_brought[item.key]}</td>
-                        <td className="text-right p-2 text-blue-600">{stock.stock_sold_calculated?.[item.key] || 0}</td>
                         <td className="text-right p-2 text-green-600">
                           {stock.stock_remaining[item.key]}
                           {(item.key === 'pangsit_malang' || item.key === 'soun') && stock.stock_remaining[item.key] === 0 && (
                             <span className="text-xs ml-1">✓</span>
                           )}
                         </td>
-                        <td className="text-right p-2 text-red-600">{stock.stock_wasted?.[item.key] || 0}</td>
+                        <td className="text-right p-2 text-blue-600 font-semibold">{stock.stock_sold?.[item.key] || 0}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+              
+              <div className="mt-4 pt-4 border-t space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Pendapatan dari Paket Bakso:</span>
+                  <span className="text-lg font-bold text-green-600">{formatCurrency(stock.revenue_from_stock || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                  <span>Biaya Produksi:</span>
+                  <span>{formatCurrency(stock.production_cost_from_stock || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-medium">Laba Kotor:</span>
+                  <span className="font-semibold text-green-600">
+                    {formatCurrency((stock.revenue_from_stock || 0) - (stock.production_cost_from_stock || 0))}
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Catatan Penting</CardTitle>
+              <CardTitle>Harga Jual & Biaya Produksi</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <div className="flex items-start space-x-2">
-                <span className="text-blue-600">•</span>
-                <p><strong>Terjual (Kalkulasi):</strong> Dihitung otomatis dari transaksi penjualan</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="font-semibold mb-2">Harga Jual:</p>
+                  <ul className="space-y-1 text-muted-foreground">
+                    <li>• Bakso Urat: Rp 2.000</li>
+                    <li>• Bakso Kecil: Rp 1.000</li>
+                    <li>• Tahu: Rp 1.000</li>
+                    <li>• Somay: Rp 1.000</li>
+                    <li>• Pangsit: Rp 1.000</li>
+                    <li>• Soun: Rp 1.000</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-semibold mb-2">Biaya Produksi:</p>
+                  <ul className="space-y-1 text-muted-foreground">
+                    <li>• Bakso Urat: Rp 1.300</li>
+                    <li>• Lainnya: Rp 650</li>
+                  </ul>
+                </div>
               </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-green-600">•</span>
-                <p><strong>Sisa:</strong> Barang yang dibawa pulang (kecuali Pangsit & Soun)</p>
-              </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-red-600">•</span>
-                <p><strong>Terbuang:</strong> Selisih antara stok dibawa, terjual, dan sisa</p>
-              </div>
-              <div className="flex items-start space-x-2 mt-3 p-2 bg-yellow-50 rounded">
-                <span className="text-yellow-600">⚠️</span>
-                <p><strong>Khusus Pangsit & Soun:</strong> Tidak dibawa pulang, harus habis atau dihitung terbuang</p>
+              <div className="mt-3 p-2 bg-blue-50 rounded">
+                <p className="text-xs"><strong>Catatan:</strong> Pendapatan dihitung otomatis = (Bawaan - Sisa) × Harga Jual</p>
               </div>
             </CardContent>
           </Card>
