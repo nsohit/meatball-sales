@@ -916,11 +916,6 @@ const StockManagementPage = () => {
         </Card>
       )}
 
-  const handleExportStock = () => {
-    window.open(`${API}/export/stock/${selectedDate}`, '_blank');
-    toast.success('File Excel sedang diunduh...');
-  };
-
       {stock && !editMode.initial && !editMode.remaining && (
         <Card>
           <CardHeader>
