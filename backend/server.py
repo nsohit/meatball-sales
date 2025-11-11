@@ -80,10 +80,16 @@ class PackageTransaction(BaseModel):
     revenue: float
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class ExtraItem(BaseModel):
+    item_name: str
+    quantity: int
+    price: float
+
 class PackageTransactionCreate(BaseModel):
     date: str
     package_price: float
     quantity: int = 1
+    extra_items: List[ExtraItem] = []
 
 class BeverageTransaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
