@@ -888,16 +888,135 @@ const StockManagementPage = () => {
         </Card>
       )}
 
-      {stock && stock.stock_remaining && (
+      {stock && !editMode.initial && !editMode.remaining && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Data Stok Hari Ini</CardTitle>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleEditInitial} data-testid="edit-initial-btn">
+                  Edit Stok Awal
+                </Button>
+                {stock.stock_remaining && (
+                  <Button variant="outline" size="sm" onClick={handleEditRemaining} data-testid="edit-remaining-btn">
+                    Edit Stok Sisa
+                  </Button>
+                )}
+                <Button variant="destructive" size="sm" onClick={handleDeleteStock} data-testid="delete-stock-btn">
+                  Hapus
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h4 className="font-semibold mb-2">Stok Awal (Bawaan):</h4>
+              <div className="grid grid-cols-3 gap-2 text-sm">
+                {stockItems.map((item) => (
+                  <div key={item.key} className="flex justify-between p-2 bg-muted rounded">
+                    <span>{item.label}:</span>
+                    <span className="font-semibold">{stock.stock_brought[item.key]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {stock.stock_remaining && (
+              <>
+                <div>
+                  <h4 className="font-semibold mb-2">Stok Sisa:</h4>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    {stockItems.map((item) => (
+                      <div key={item.key} className="flex justify-between p-2 bg-muted rounded">
+                        <span>{item.label}:</span>
+                        <span className="font-semibold text-green-600">{stock.stock_remaining[item.key]}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {editMode.initial && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Edit Stok Awal</CardTitle>
+              <Button variant="ghost" size="sm" onClick={handleCancelEdit}>Batal</Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleInitialSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {stockItems.map((item) => (
+                  <div key={item.key} className="space-y-2">
+                    <Label>{item.label}</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={initialStock[item.key]}
+                      onChange={(e) => setInitialStock({ ...initialStock, [item.key]: parseInt(e.target.value) || 0 })}
+                      placeholder="0"
+                      required
+                    />
+                  </div>
+                ))}
+              </div>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {editMode.remaining && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Edit Stok Sisa</CardTitle>
+              <Button variant="ghost" size="sm" onClick={handleCancelEdit}>Batal</Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleRemainingSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {stockItems.map((item) => (
+                  <div key={item.key} className="space-y-2">
+                    <Label>
+                      {item.label}
+                      {(item.key === 'pangsit_malang' || item.key === 'soun') && (
+                        <span className="text-xs text-red-500 ml-1">(Tidak dibawa pulang)</span>
+                      )}
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={remainingStock[item.key]}
+                      onChange={(e) => setRemainingStock({ ...remainingStock, [item.key]: parseInt(e.target.value) || 0 })}
+                      placeholder="0"
+                      disabled={item.key === 'pangsit_malang' || item.key === 'soun'}
+                      required
+                    />
+                  </div>
+                ))}
+              </div>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {stock && stock.stock_remaining && !editMode.initial && !editMode.remaining && (
         <>
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Rekap Stok Harian</CardTitle>
-                <Button variant="destructive" size="sm" onClick={handleDeleteStock} data-testid="delete-stock-btn">
-                  Hapus Data Stok
-                </Button>
-              </div>
+              <CardTitle>Rekap Stok Harian</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
