@@ -511,7 +511,9 @@ const ReportsPage = () => {
                     {packageTxns.map((txn) => (
                       <div key={txn.id} className="flex items-center justify-between p-3 border rounded-lg" data-testid="package-transaction-item">
                         <div>
-                          <p className="font-semibold">{formatCurrency(txn.package_price)}</p>
+                          <p className="font-semibold">
+                            {txn.quantity} paket × {formatCurrency(txn.package_price)} = {formatCurrency(txn.revenue)}
+                          </p>
                           <p className="text-sm text-muted-foreground">
                             Biaya produksi: {formatCurrency(txn.total_production_cost)}
                           </p>
