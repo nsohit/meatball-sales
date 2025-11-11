@@ -720,11 +720,21 @@ const StockManagementPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(`${API}/stock/initial`, {
-        date: selectedDate,
-        ...initialStock
-      });
-      toast.success('Stok awal berhasil dicatat');
+      if (editMode.initial) {
+        // Update existing
+        await axios.put(`${API}/stock/initial/${selectedDate}`, {
+          date: selectedDate,
+          ...initialStock
+        });
+        toast.success('Stok awal berhasil diupdate');
+      } else {
+        // Create new
+        await axios.post(`${API}/stock/initial`, {
+          date: selectedDate,
+          ...initialStock
+        });
+        toast.success('Stok awal berhasil dicatat');
+      }
       setInitialStock({
         bakso_urat: '',
         bakso_kecil: '',
@@ -735,8 +745,8 @@ const StockManagementPage = () => {
       });
       fetchStock();
     } catch (error) {
-      console.error('Error creating initial stock:', error);
-      toast.error(error.response?.data?.detail || 'Gagal mencatat stok awal');
+      console.error('Error saving initial stock:', error);
+      toast.error(error.response?.data?.detail || 'Gagal menyimpan stok awal');
     } finally {
       setLoading(false);
     }
