@@ -69,6 +69,11 @@ class TransactionItem(BaseModel):
     price: float
     production_cost: float
 
+class ExtraItem(BaseModel):
+    item_name: str
+    quantity: int
+    price: float
+
 class PackageTransaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -81,11 +86,6 @@ class PackageTransaction(BaseModel):
     total_production_cost: float
     revenue: float
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class ExtraItem(BaseModel):
-    item_name: str
-    quantity: int
-    price: float
 
 class PackageTransactionCreate(BaseModel):
     date: str
