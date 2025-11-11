@@ -891,22 +891,22 @@ const StockManagementPage = () => {
             <CardDescription>Catat sisa barang yang dibawa pulang (Pangsit & Soun harus habis)</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleRemainingSubmit} className=\"space-y-4\">
-              <div className=\"grid grid-cols-2 gap-4\">
+            <form onSubmit={handleRemainingSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 {stockItems.map((item) => (
-                  <div key={item.key} className=\"space-y-2\">
+                  <div key={item.key} className="space-y-2">
                     <Label>
                       {item.label}
                       {(item.key === 'pangsit_malang' || item.key === 'soun') && (
-                        <span className=\"text-xs text-red-500 ml-1\">(Tidak dibawa pulang)</span>
+                        <span className="text-xs text-red-500 ml-1">(Tidak dibawa pulang)</span>
                       )}
                     </Label>
                     <Input
-                      type=\"number\"
-                      min=\"0\"
+                      type="number"
+                      min="0"
                       value={remainingStock[item.key]}
                       onChange={(e) => setRemainingStock({ ...remainingStock, [item.key]: parseInt(e.target.value) || 0 })}
-                      placeholder=\"0\"
+                      placeholder="0"
                       data-testid={`remaining-${item.key}`}
                       disabled={item.key === 'pangsit_malang' || item.key === 'soun'}
                       required
@@ -914,7 +914,7 @@ const StockManagementPage = () => {
                   </div>
                 ))}
               </div>
-              <Button type=\"submit\" disabled={loading} className=\"w-full\" data-testid=\"submit-remaining-stock-btn\">
+              <Button type="submit" disabled={loading} className="w-full" data-testid="submit-remaining-stock-btn">
                 {loading ? 'Menyimpan...' : 'Simpan Stok Sisa'}
               </Button>
             </form>
