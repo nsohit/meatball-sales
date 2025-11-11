@@ -318,8 +318,9 @@ async def create_package_transaction(transaction: PackageTransactionCreate):
     extra_items_production_cost = 0
     
     for extra in transaction.extra_items:
-        extra_items_revenue += extra.price * extra.quantity
-        # Production cost for extra items
+        # Price is already total for the quantity, don't multiply again
+        extra_items_revenue += extra.price
+        # Production cost for extra items (quantity is number of pieces)
         if extra.item_name == 'Bakso urat':
             extra_items_production_cost += 1300 * extra.quantity
         else:
