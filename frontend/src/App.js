@@ -184,45 +184,12 @@ const Dashboard = () => {
   );
 };
 
-// Transaction Component
+// Transaction Component (Minuman saja)
 const TransactionPage = () => {
   const [selectedDate, setSelectedDate] = useState(getTodayDate());
-  const [packagePrice, setPackagePrice] = useState('');
-  const [packageQuantity, setPackageQuantity] = useState('1');
   const [beverageType, setBeverageType] = useState('Teh rosela');
   const [beverageQuantity, setBeverageQuantity] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const packagePrices = [5000, 7000, 10000, 12000, 13000, 15000];
-
-  const handlePackageSubmit = async (e) => {
-    e.preventDefault();
-    if (!packagePrice) {
-      toast.error('Pilih harga paket');
-      return;
-    }
-    if (!packageQuantity || packageQuantity <= 0) {
-      toast.error('Masukkan jumlah paket');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await axios.post(`${API}/transactions/package`, {
-        date: selectedDate,
-        package_price: parseFloat(packagePrice),
-        quantity: parseInt(packageQuantity),
-      });
-      toast.success('Transaksi paket berhasil dicatat');
-      setPackagePrice('');
-      setPackageQuantity('1');
-    } catch (error) {
-      console.error('Error creating package transaction:', error);
-      toast.error('Gagal mencatat transaksi paket');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleBeverageSubmit = async (e) => {
     e.preventDefault();
