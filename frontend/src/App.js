@@ -815,6 +815,11 @@ const StockManagementPage = () => {
     }
   };
 
+  const handleExportStock = () => {
+    window.open(`${API}/export/stock/${selectedDate}`, '_blank');
+    toast.success('File Excel sedang diunduh...');
+  };
+
   const stockItems = [
     { key: 'bakso_urat', label: 'Bakso Urat' },
     { key: 'bakso_kecil', label: 'Bakso Kecil' },
