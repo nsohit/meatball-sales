@@ -78,6 +78,7 @@ class PackageTransaction(BaseModel):
 class PackageTransactionCreate(BaseModel):
     date: str
     package_price: float
+    quantity: int = 1
 
 class BeverageTransaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
