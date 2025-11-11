@@ -300,15 +300,32 @@ const TransactionPage = () => {
                   </Select>
                 </div>
 
-                {packagePrice && (
+                <div className="space-y-2">
+                  <Label>Jumlah Paket</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={packageQuantity}
+                    onChange={(e) => setPackageQuantity(e.target.value)}
+                    placeholder="Berapa paket?"
+                    data-testid="package-quantity-input"
+                  />
+                </div>
+
+                {packagePrice && packageQuantity && (
                   <div className="p-4 bg-muted rounded-lg space-y-2">
-                    <h4 className="font-semibold">Komposisi Paket:</h4>
+                    <h4 className="font-semibold">Komposisi per Paket:</h4>
                     <p className="text-sm text-muted-foreground">
                       Total: {9 + (parseFloat(packagePrice) - 10000) / 1000} pcs
                     </p>
                     <p className="text-xs text-muted-foreground">
                       (1 Bakso urat = 2 pcs, sisanya bakso kecil, somay, tahu, pangsit, soun)
                     </p>
+                    <div className="mt-2 pt-2 border-t">
+                      <p className="text-sm font-semibold">
+                        Total: {parseInt(packageQuantity)} paket × {formatCurrency(parseFloat(packagePrice))} = {formatCurrency(parseFloat(packagePrice) * parseInt(packageQuantity))}
+                      </p>
+                    </div>
                   </div>
                 )}
 
