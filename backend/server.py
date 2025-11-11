@@ -70,6 +70,7 @@ class PackageTransaction(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     date: str
     package_price: float
+    quantity: int = 1
     items: List[TransactionItem]
     total_production_cost: float
     revenue: float
