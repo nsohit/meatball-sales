@@ -192,6 +192,221 @@ const Dashboard = () => {
   );
 };
 
+// Transaction Paket Component
+const TransactionPaketPage = () => {
+  const [selectedDate, setSelectedDate] = useState(getTodayDate());
+  const [packagePrice, setPackagePrice] = useState('');
+  const [packageQuantity, setPackageQuantity] = useState('1');
+  const [extraItems, setExtraItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const packagePrices = [5000, 7000, 10000, 12000, 13000, 15000];
+  
+  const availableExtras = [
+    { name: 'Bakso urat', prices: [{ pcs: 1, price: 2000 }] },
+    { name: 'Bakso kecil', prices: [{ pcs: 1, price: 500 }, { pcs: 2, price: 1000 }, { pcs: 4, price: 2000 }] },
+    { name: 'Tahu', prices: [{ pcs: 1, price: 500 }, { pcs: 2, price: 1000 }] },
+    { name: 'Somay', prices: [{ pcs: 1, price: 500 }, { pcs: 2, price: 1000 }] },
+    { name: 'Pangsit malang', prices: [{ pcs: 1, price: 500 }, { pcs: 2, price: 1000 }] },
+    { name: 'Soun', prices: [{ pcs: 1, price: 500 }, { pcs: 2, price: 1000 }] },
+  ];
+
+  const addExtraItem = (itemName, pcs, price) => {
+    setExtraItems([...extraItems, { item_name: itemName, quantity: pcs, price: price }]);
+  };
+
+  const removeExtraItem = (index) => {
+    setExtraItems(extraItems.filter((_, i) => i !== index));
+  };
+
+  const calculateExtraTotal = () => {
+    return extraItems.reduce((sum, item) => sum + item.price, 0);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!packagePrice) {
+      toast.error('Pilih harga paket');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(`${API}/transactions/package`, {
+        date: selectedDate,
+        package_price: parseFloat(packagePrice),
+        quantity: parseInt(packageQuantity),
+        extra_items: extraItems,
+      });
+      toast.success('Transaksi paket berhasil dicatat');
+      setPackagePrice('');
+      setPackageQuantity('1');
+      setExtraItems([]);
+    } catch (error) {
+      console.error('Error creating package transaction:', error);
+      toast.error('Gagal mencatat transaksi paket');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6" data-testid="transaction-paket-page">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Transaksi Paket Bakso</h2>
+        <p className="text-muted-foreground">Catat penjualan paket dengan tambahan kondimen</p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Pilih Tanggal</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            max={getTodayDate()}
+            data-testid="paket-date-input"
+          />
+        </CardContent>
+      </Card>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Paket Bakso</CardTitle>
+            <CardDescription>Pilih harga paket dasar</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Harga Paket</Label>
+              <Select value={packagePrice} onValueChange={setPackagePrice}>
+                <SelectTrigger data-testid="paket-price-select">
+                  <SelectValue placeholder="Pilih harga paket" />
+                </SelectTrigger>
+                <SelectContent>
+                  {packagePrices.map((price) => (
+                    <SelectItem key={price} value={price.toString()}>
+                      {formatCurrency(price)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Jumlah Paket</Label>
+              <Input
+                type="number"
+                min="1"
+                value={packageQuantity}
+                onChange={(e) => setPackageQuantity(e.target.value)}
+                placeholder="Berapa paket?"
+                data-testid="paket-quantity-input"
+              />
+            </div>
+
+            {packagePrice && (
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-sm font-semibold">
+                  Subtotal Paket: {parseInt(packageQuantity)} × {formatCurrency(parseFloat(packagePrice))} = {formatCurrency(parseFloat(packagePrice) * parseInt(packageQuantity))}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Tambah Kondimen</CardTitle>
+            <CardDescription>Tambahkan item ekstra ke paket</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {availableExtras.map((extra) => (
+              <div key={extra.name} className="border-b pb-3">
+                <p className="font-medium mb-2">{extra.name}</p>
+                <div className="flex flex-wrap gap-2">
+                  {extra.prices.map((option) => (
+                    <Button
+                      key={`${extra.name}-${option.pcs}`}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addExtraItem(extra.name, option.pcs, option.price)}
+                      data-testid={`add-extra-${extra.name.replace(' ', '-')}-${option.pcs}`}
+                    >
+                      +{option.pcs} pcs ({formatCurrency(option.price)})
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {extraItems.length > 0 && (
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-semibold mb-2">Item Tambahan:</h4>
+                <div className="space-y-2">
+                  {extraItems.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm">
+                      <span>{item.item_name} × {item.quantity} pcs</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{formatCurrency(item.price)}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeExtraItem(index)}
+                          data-testid={`remove-extra-${index}`}
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Separator className="my-2" />
+                <div className="flex justify-between font-semibold">
+                  <span>Total Tambahan:</span>
+                  <span className="text-green-600">{formatCurrency(calculateExtraTotal())}</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {packagePrice && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="space-y-2">
+                <div className="flex justify-between text-lg">
+                  <span>Subtotal Paket:</span>
+                  <span>{formatCurrency(parseFloat(packagePrice) * parseInt(packageQuantity))}</span>
+                </div>
+                <div className="flex justify-between text-lg">
+                  <span>Total Tambahan:</span>
+                  <span>{formatCurrency(calculateExtraTotal())}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between text-xl font-bold">
+                  <span>TOTAL:</span>
+                  <span className="text-green-600">
+                    {formatCurrency(parseFloat(packagePrice) * parseInt(packageQuantity) + calculateExtraTotal())}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <Button type="submit" disabled={loading} className="w-full" size="lg" data-testid="submit-paket-btn">
+          {loading ? 'Menyimpan...' : 'Simpan Transaksi Paket'}
+        </Button>
+      </form>
+    </div>
+  );
+};
+
 // Transaction Component (Minuman saja)
 const TransactionPage = () => {
   const [selectedDate, setSelectedDate] = useState(getTodayDate());
