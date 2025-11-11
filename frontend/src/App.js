@@ -657,13 +657,63 @@ const StockManagementPage = () => {
       setStock(response.data);
       setShowInitialForm(false);
       setShowRemainingForm(!response.data.stock_remaining);
+      setEditMode({ initial: false, remaining: false });
     } catch (error) {
       if (error.response?.status === 404) {
         setStock(null);
         setShowInitialForm(true);
         setShowRemainingForm(false);
+        setEditMode({ initial: false, remaining: false });
       }
     }
+  };
+
+  const handleEditInitial = () => {
+    if (stock && stock.stock_brought) {
+      setInitialStock({
+        bakso_urat: stock.stock_brought.bakso_urat,
+        bakso_kecil: stock.stock_brought.bakso_kecil,
+        tahu: stock.stock_brought.tahu,
+        somay: stock.stock_brought.somay,
+        pangsit_malang: stock.stock_brought.pangsit_malang,
+        soun: stock.stock_brought.soun
+      });
+      setEditMode({ ...editMode, initial: true });
+    }
+  };
+
+  const handleEditRemaining = () => {
+    if (stock && stock.stock_remaining) {
+      setRemainingStock({
+        bakso_urat: stock.stock_remaining.bakso_urat,
+        bakso_kecil: stock.stock_remaining.bakso_kecil,
+        tahu: stock.stock_remaining.tahu,
+        somay: stock.stock_remaining.somay,
+        pangsit_malang: stock.stock_remaining.pangsit_malang,
+        soun: stock.stock_remaining.soun
+      });
+      setEditMode({ ...editMode, remaining: true });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditMode({ initial: false, remaining: false });
+    setInitialStock({
+      bakso_urat: '',
+      bakso_kecil: '',
+      tahu: '',
+      somay: '',
+      pangsit_malang: '',
+      soun: ''
+    });
+    setRemainingStock({
+      bakso_urat: '',
+      bakso_kecil: '',
+      tahu: '',
+      somay: '',
+      pangsit_malang: '',
+      soun: ''
+    });
   };
 
   const handleInitialSubmit = async (e) => {
