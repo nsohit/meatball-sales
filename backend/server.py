@@ -349,12 +349,18 @@ async def create_beverage_transaction(transaction: BeverageTransactionCreate):
 # Daily Summary
 @api_router.get("/daily-summary/{date}", response_model=DailySummary)
 async def get_daily_summary(date: str):
-    # Get all package transactions for date
-    package_txns = await db.package_transactions.find({"date": date}, {"_id": 0}).to_list(1000)
+    # Get stock data for the date (untuk paket bakso)
+    stock_data = await db.daily_stocks.find_one({"date": date}, {"_id": 0})
     
-    package_revenue = sum(t['revenue'] for t in package_txns)
-    package_cost = sum(t['total_production_cost'] for t in package_txns)
-    package_count = len(package_txns)
+    package_revenue = 0
+    package_cost = 0
+    package_count = 0
+    
+    if stock_data and stock_data.get('stock_remaining'):
+        # Revenue dari stok management (paket bakso)
+        package_revenue = stock_data.get('revenue_from_stock', 0)
+        package_cost = stock_data.get('production_cost_from_stock', 0)
+        package_count = 1  # Indicate stock is managed
     
     # Get all beverage transactions for date
     beverage_txns = await db.beverage_transactions.find({"date": date}, {"_id": 0}).to_list(1000)
