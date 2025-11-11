@@ -713,6 +713,296 @@ const MonthlyReportPage = () => {
   );
 };
 
+// Stock Management Component
+const StockManagementPage = () => {
+  const [selectedDate, setSelectedDate] = useState(getTodayDate());
+  const [stock, setStock] = useState(null);
+  const [showInitialForm, setShowInitialForm] = useState(false);
+  const [showRemainingForm, setShowRemainingForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  // Initial stock form
+  const [initialStock, setInitialStock] = useState({
+    bakso_urat: '',
+    bakso_kecil: '',
+    tahu: '',
+    somay: '',
+    pangsit_malang: '',
+    soun: ''
+  });
+  
+  // Remaining stock form
+  const [remainingStock, setRemainingStock] = useState({
+    bakso_urat: '',
+    bakso_kecil: '',
+    tahu: '',
+    somay: '',
+    pangsit_malang: '',
+    soun: ''
+  });
+
+  useEffect(() => {
+    fetchStock();
+  }, [selectedDate]);
+
+  const fetchStock = async () => {
+    try {
+      const response = await axios.get(`${API}/stock/${selectedDate}`);
+      setStock(response.data);
+      setShowInitialForm(false);
+      setShowRemainingForm(!response.data.stock_remaining);
+    } catch (error) {
+      if (error.response?.status === 404) {
+        setStock(null);
+        setShowInitialForm(true);
+        setShowRemainingForm(false);
+      }
+    }
+  };
+
+  const handleInitialSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await axios.post(`${API}/stock/initial`, {
+        date: selectedDate,
+        ...initialStock
+      });
+      toast.success('Stok awal berhasil dicatat');
+      setInitialStock({
+        bakso_urat: '',
+        bakso_kecil: '',
+        tahu: '',
+        somay: '',
+        pangsit_malang: '',
+        soun: ''
+      });
+      fetchStock();
+    } catch (error) {
+      console.error('Error creating initial stock:', error);
+      toast.error(error.response?.data?.detail || 'Gagal mencatat stok awal');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemainingSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await axios.put(`${API}/stock/remaining/${selectedDate}`, remainingStock);
+      toast.success('Stok sisa berhasil dicatat');
+      setRemainingStock({
+        bakso_urat: '',
+        bakso_kecil: '',
+        tahu: '',
+        somay: '',
+        pangsit_malang: '',
+        soun: ''
+      });
+      fetchStock();
+    } catch (error) {
+      console.error('Error updating remaining stock:', error);
+      toast.error(error.response?.data?.detail || 'Gagal mencatat stok sisa');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteStock = async () => {
+    if (!window.confirm('Hapus data stok untuk tanggal ini?')) return;
+    try {
+      await axios.delete(`${API}/stock/${selectedDate}`);
+      toast.success('Stok berhasil dihapus');
+      fetchStock();
+    } catch (error) {
+      console.error('Error deleting stock:', error);
+      toast.error('Gagal menghapus stok');
+    }
+  };
+
+  const stockItems = [
+    { key: 'bakso_urat', label: 'Bakso Urat' },
+    { key: 'bakso_kecil', label: 'Bakso Kecil' },
+    { key: 'tahu', label: 'Tahu' },
+    { key: 'somay', label: 'Somay' },
+    { key: 'pangsit_malang', label: 'Pangsit Malang' },
+    { key: 'soun', label: 'Soun' }
+  ];
+
+  return (
+    <div className=\"space-y-6\" data-testid=\"stock-management-page\">
+      <div>
+        <h2 className=\"text-3xl font-bold tracking-tight\">Manajemen Stok</h2>
+        <p className=\"text-muted-foreground\">Input stok barang yang dibawa dan sisa</p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Pilih Tanggal</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Input
+            type=\"date\"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            max={getTodayDate()}
+            data-testid=\"stock-date-input\"
+          />
+        </CardContent>
+      </Card>
+
+      {showInitialForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Input Stok Awal Hari Ini</CardTitle>
+            <CardDescription>Catat barang yang dibawa</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleInitialSubmit} className=\"space-y-4\">
+              <div className=\"grid grid-cols-2 gap-4\">
+                {stockItems.map((item) => (
+                  <div key={item.key} className=\"space-y-2\">
+                    <Label>{item.label}</Label>
+                    <Input
+                      type=\"number\"
+                      min=\"0\"
+                      value={initialStock[item.key]}
+                      onChange={(e) => setInitialStock({ ...initialStock, [item.key]: parseInt(e.target.value) || 0 })}
+                      placeholder=\"0\"
+                      data-testid={`initial-${item.key}`}
+                      required
+                    />
+                  </div>
+                ))}
+              </div>
+              <Button type=\"submit\" disabled={loading} className=\"w-full\" data-testid=\"submit-initial-stock-btn\">
+                {loading ? 'Menyimpan...' : 'Simpan Stok Awal'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {stock && !stock.stock_remaining && showRemainingForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Input Stok Sisa</CardTitle>
+            <CardDescription>Catat sisa barang yang dibawa pulang (Pangsit & Soun harus habis)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleRemainingSubmit} className=\"space-y-4\">
+              <div className=\"grid grid-cols-2 gap-4\">
+                {stockItems.map((item) => (
+                  <div key={item.key} className=\"space-y-2\">
+                    <Label>
+                      {item.label}
+                      {(item.key === 'pangsit_malang' || item.key === 'soun') && (
+                        <span className=\"text-xs text-red-500 ml-1\">(Tidak dibawa pulang)</span>
+                      )}
+                    </Label>
+                    <Input
+                      type=\"number\"
+                      min=\"0\"
+                      value={remainingStock[item.key]}
+                      onChange={(e) => setRemainingStock({ ...remainingStock, [item.key]: parseInt(e.target.value) || 0 })}
+                      placeholder=\"0\"
+                      data-testid={`remaining-${item.key}`}
+                      disabled={item.key === 'pangsit_malang' || item.key === 'soun'}
+                      required
+                    />
+                  </div>
+                ))}
+              </div>
+              <Button type=\"submit\" disabled={loading} className=\"w-full\" data-testid=\"submit-remaining-stock-btn\">
+                {loading ? 'Menyimpan...' : 'Simpan Stok Sisa'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {stock && stock.stock_remaining && (
+        <>
+          <Card>
+            <CardHeader>
+              <div className=\"flex items-center justify-between\">
+                <CardTitle>Rekap Stok Harian</CardTitle>
+                <Button variant=\"destructive\" size=\"sm\" onClick={handleDeleteStock} data-testid=\"delete-stock-btn\">
+                  Hapus Data Stok
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className=\"overflow-x-auto\">
+                <table className=\"w-full text-sm\">
+                  <thead>
+                    <tr className=\"border-b\">
+                      <th className=\"text-left p-2\">Item</th>
+                      <th className=\"text-right p-2\">Dibawa</th>
+                      <th className=\"text-right p-2\">Terjual (Kalkulasi)</th>
+                      <th className=\"text-right p-2\">Sisa</th>
+                      <th className=\"text-right p-2\">Terbuang</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stockItems.map((item) => (
+                      <tr key={item.key} className=\"border-b\">
+                        <td className=\"p-2 font-medium\">{item.label}</td>
+                        <td className=\"text-right p-2\">{stock.stock_brought[item.key]}</td>
+                        <td className=\"text-right p-2 text-blue-600\">{stock.stock_sold_calculated?.[item.key] || 0}</td>
+                        <td className=\"text-right p-2 text-green-600\">
+                          {stock.stock_remaining[item.key]}
+                          {(item.key === 'pangsit_malang' || item.key === 'soun') && stock.stock_remaining[item.key] === 0 && (
+                            <span className=\"text-xs ml-1\">✓</span>
+                          )}
+                        </td>
+                        <td className=\"text-right p-2 text-red-600\">{stock.stock_wasted?.[item.key] || 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Catatan Penting</CardTitle>
+            </CardHeader>
+            <CardContent className=\"space-y-2 text-sm\">
+              <div className=\"flex items-start space-x-2\">
+                <span className=\"text-blue-600\">•</span>
+                <p><strong>Terjual (Kalkulasi):</strong> Dihitung otomatis dari transaksi penjualan</p>
+              </div>
+              <div className=\"flex items-start space-x-2\">
+                <span className=\"text-green-600\">•</span>
+                <p><strong>Sisa:</strong> Barang yang dibawa pulang (kecuali Pangsit & Soun)</p>
+              </div>
+              <div className=\"flex items-start space-x-2\">
+                <span className=\"text-red-600\">•</span>
+                <p><strong>Terbuang:</strong> Selisih antara stok dibawa, terjual, dan sisa</p>
+              </div>
+              <div className=\"flex items-start space-x-2 mt-3 p-2 bg-yellow-50 rounded\">
+                <span className=\"text-yellow-600\">⚠️</span>
+                <p><strong>Khusus Pangsit & Soun:</strong> Tidak dibawa pulang, harus habis atau dihitung terbuang</p>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {!stock && !showInitialForm && (
+        <Card>
+          <CardContent className=\"py-8\">
+            <p className=\"text-center text-muted-foreground\">Tidak ada data stok untuk tanggal ini</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
 // Main App Layout
 const Layout = ({ children }) => {
   const navigate = useNavigate();
