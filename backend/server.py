@@ -243,28 +243,34 @@ async def update_settings(updates: SettingsUpdate):
 # Package Transactions
 @api_router.post("/transactions/package", response_model=PackageTransaction)
 async def create_package_transaction(transaction: PackageTransactionCreate):
-    # Calculate composition and cost
+    # Calculate composition and cost per package
     composition = calculate_package_composition(transaction.package_price)
-    production_cost = calculate_production_cost(composition)
+    production_cost_per_package = calculate_production_cost(composition)
     
-    # Create transaction items
+    # Multiply by quantity
+    total_production_cost = production_cost_per_package * transaction.quantity
+    total_revenue = transaction.package_price * transaction.quantity
+    
+    # Create transaction items (already multiplied by quantity)
     items = []
-    for product_name, quantity in composition.items():
-        if quantity > 0:
+    for product_name, qty_per_package in composition.items():
+        if qty_per_package > 0:
             item_cost = 1300 if product_name == 'Bakso urat' else 650
+            total_qty = qty_per_package * transaction.quantity
             items.append(TransactionItem(
                 product_name=product_name,
-                quantity=quantity,
+                quantity=total_qty,
                 price=0,  # Harga paket total
-                production_cost=item_cost * quantity
+                production_cost=item_cost * total_qty
             ))
     
     transaction_obj = PackageTransaction(
         date=transaction.date,
         package_price=transaction.package_price,
+        quantity=transaction.quantity,
         items=items,
-        total_production_cost=production_cost,
-        revenue=transaction.package_price
+        total_production_cost=total_production_cost,
+        revenue=total_revenue
     )
     
     doc = transaction_obj.model_dump()
