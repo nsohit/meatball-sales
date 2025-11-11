@@ -133,15 +133,23 @@ const Dashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Aksi Cepat</CardTitle>
-            <CardDescription>Catat transaksi baru</CardDescription>
+            <CardDescription>Kelola stok dan transaksi</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button 
               className="w-full" 
-              onClick={() => navigate('/transaksi')}
-              data-testid="quick-add-transaction-btn"
+              onClick={() => navigate('/stok')}
+              data-testid="quick-manage-stock-btn"
             >
-              Tambah Transaksi
+              Kelola Stok Bakso
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={() => navigate('/transaksi')}
+              data-testid="quick-add-beverage-btn"
+            >
+              Tambah Minuman
             </Button>
             <Button 
               variant="outline" 
