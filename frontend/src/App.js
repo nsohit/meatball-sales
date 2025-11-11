@@ -1050,6 +1050,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout><Dashboard /></Layout>} />
           <Route path="/transaksi" element={<Layout><TransactionPage /></Layout>} />
+          <Route path="/stok" element={<Layout><StockManagementPage /></Layout>} />
           <Route path="/laporan" element={<Layout><ReportsPage /></Layout>} />
           <Route path="/laporan-bulanan" element={<Layout><MonthlyReportPage /></Layout>} />
         </Routes>
