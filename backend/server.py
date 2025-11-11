@@ -468,6 +468,118 @@ async def delete_beverage_transaction(transaction_id: str):
         raise HTTPException(status_code=404, detail="Transaksi tidak ditemukan")
     return {"message": "Transaksi berhasil dihapus"}
 
+# Stock Management
+@api_router.post("/stock/initial", response_model=DailyStock)
+async def create_initial_stock(stock: DailyStockCreate):
+    # Check if stock already exists for this date
+    existing = await db.daily_stocks.find_one({"date": stock.date}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Stok untuk tanggal ini sudah ada")
+    
+    stock_brought = StockItem(
+        bakso_urat=stock.bakso_urat,
+        bakso_kecil=stock.bakso_kecil,
+        tahu=stock.tahu,
+        somay=stock.somay,
+        pangsit_malang=stock.pangsit_malang,
+        soun=stock.soun
+    )
+    
+    stock_obj = DailyStock(
+        date=stock.date,
+        stock_brought=stock_brought
+    )
+    
+    doc = stock_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    await db.daily_stocks.insert_one(doc)
+    
+    return stock_obj
+
+@api_router.put("/stock/remaining/{date}", response_model=DailyStock)
+async def update_remaining_stock(date: str, remaining: DailyStockRemainingUpdate):
+    # Get existing stock
+    existing = await db.daily_stocks.find_one({"date": date}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Stok awal belum diinput untuk tanggal ini")
+    
+    if isinstance(existing.get('created_at'), str):
+        existing['created_at'] = datetime.fromisoformat(existing['created_at'])
+    if isinstance(existing.get('updated_at'), str):
+        existing['updated_at'] = datetime.fromisoformat(existing['updated_at'])
+    
+    stock_obj = DailyStock(**existing)
+    
+    # Set remaining stock
+    stock_obj.stock_remaining = StockItem(**remaining.model_dump())
+    
+    # Calculate sold from transactions
+    package_txns = await db.package_transactions.find({"date": date}, {"_id": 0}).to_list(1000)
+    
+    sold_calculated = {
+        'bakso_urat': 0,
+        'bakso_kecil': 0,
+        'tahu': 0,
+        'somay': 0,
+        'pangsit_malang': 0,
+        'soun': 0
+    }
+    
+    for txn in package_txns:
+        for item in txn['items']:
+            product_name = item['product_name'].lower().replace(' ', '_')
+            if product_name in sold_calculated:
+                sold_calculated[product_name] += item['quantity']
+    
+    stock_obj.stock_sold_calculated = StockItem(**sold_calculated)
+    
+    # Calculate wasted (brought - remaining - sold)
+    # For pangsit and soun, remaining should be 0 (habis atau rugi)
+    wasted = {
+        'bakso_urat': max(0, stock_obj.stock_brought.bakso_urat - stock_obj.stock_remaining.bakso_urat - sold_calculated['bakso_urat']),
+        'bakso_kecil': max(0, stock_obj.stock_brought.bakso_kecil - stock_obj.stock_remaining.bakso_kecil - sold_calculated['bakso_kecil']),
+        'tahu': max(0, stock_obj.stock_brought.tahu - stock_obj.stock_remaining.tahu - sold_calculated['tahu']),
+        'somay': max(0, stock_obj.stock_brought.somay - stock_obj.stock_remaining.somay - sold_calculated['somay']),
+        'pangsit_malang': max(0, stock_obj.stock_brought.pangsit_malang - sold_calculated['pangsit_malang']),  # No remaining carried back
+        'soun': max(0, stock_obj.stock_brought.soun - sold_calculated['soun'])  # No remaining carried back
+    }
+    
+    stock_obj.stock_wasted = StockItem(**wasted)
+    stock_obj.updated_at = datetime.now(timezone.utc)
+    
+    # Update in database
+    doc = stock_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
+    await db.daily_stocks.update_one(
+        {"date": date},
+        {"$set": doc}
+    )
+    
+    return stock_obj
+
+@api_router.get("/stock/{date}", response_model=DailyStock)
+async def get_daily_stock(date: str):
+    stock = await db.daily_stocks.find_one({"date": date}, {"_id": 0})
+    if not stock:
+        raise HTTPException(status_code=404, detail="Stok tidak ditemukan untuk tanggal ini")
+    
+    if isinstance(stock.get('created_at'), str):
+        stock['created_at'] = datetime.fromisoformat(stock['created_at'])
+    if isinstance(stock.get('updated_at'), str):
+        stock['updated_at'] = datetime.fromisoformat(stock['updated_at'])
+    
+    return DailyStock(**stock)
+
+@api_router.delete("/stock/{date}")
+async def delete_daily_stock(date: str):
+    result = await db.daily_stocks.delete_one({"date": date})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Stok tidak ditemukan")
+    return {"message": "Stok berhasil dihapus"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
