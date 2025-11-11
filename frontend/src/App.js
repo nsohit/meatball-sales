@@ -133,15 +133,15 @@ const Dashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Aksi Cepat</CardTitle>
-            <CardDescription>Kelola stok dan transaksi</CardDescription>
+            <CardDescription>Kelola transaksi dan stok</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button 
               className="w-full" 
-              onClick={() => navigate('/stok')}
-              data-testid="quick-manage-stock-btn"
+              onClick={() => navigate('/transaksi-paket')}
+              data-testid="quick-add-paket-btn"
             >
-              Kelola Stok Bakso
+              Transaksi Paket
             </Button>
             <Button 
               variant="outline" 
@@ -149,15 +149,15 @@ const Dashboard = () => {
               onClick={() => navigate('/transaksi')}
               data-testid="quick-add-beverage-btn"
             >
-              Tambah Minuman
+              Transaksi Minuman
             </Button>
             <Button 
               variant="outline" 
               className="w-full" 
-              onClick={() => navigate('/laporan')}
-              data-testid="view-reports-btn"
+              onClick={() => navigate('/stok')}
+              data-testid="quick-manage-stock-btn"
             >
-              Lihat Laporan
+              Kelola Stok
             </Button>
           </CardContent>
         </Card>
