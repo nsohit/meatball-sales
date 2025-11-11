@@ -135,8 +135,9 @@ class DailyStock(BaseModel):
     date: str
     stock_brought: StockItem
     stock_remaining: Optional[StockItem] = None
-    stock_sold_calculated: Optional[StockItem] = None
-    stock_wasted: Optional[StockItem] = None
+    stock_sold: Optional[StockItem] = None
+    revenue_from_stock: Optional[float] = None
+    production_cost_from_stock: Optional[float] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
