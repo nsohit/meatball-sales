@@ -515,38 +515,43 @@ async def update_remaining_stock(date: str, remaining: DailyStockRemainingUpdate
     # Set remaining stock
     stock_obj.stock_remaining = StockItem(**remaining.model_dump())
     
-    # Calculate sold from transactions
-    package_txns = await db.package_transactions.find({"date": date}, {"_id": 0}).to_list(1000)
-    
-    sold_calculated = {
-        'bakso_urat': 0,
-        'bakso_kecil': 0,
-        'tahu': 0,
-        'somay': 0,
-        'pangsit_malang': 0,
-        'soun': 0
+    # Calculate sold = brought - remaining
+    # Pangsit dan soun tidak dibawa pulang, jadi sisa harus 0
+    sold = {
+        'bakso_urat': stock_obj.stock_brought.bakso_urat - remaining.bakso_urat,
+        'bakso_kecil': stock_obj.stock_brought.bakso_kecil - remaining.bakso_kecil,
+        'tahu': stock_obj.stock_brought.tahu - remaining.tahu,
+        'somay': stock_obj.stock_brought.somay - remaining.somay,
+        'pangsit_malang': stock_obj.stock_brought.pangsit_malang - remaining.pangsit_malang,
+        'soun': stock_obj.stock_brought.soun - remaining.soun
     }
     
-    for txn in package_txns:
-        for item in txn['items']:
-            product_name = item['product_name'].lower().replace(' ', '_')
-            if product_name in sold_calculated:
-                sold_calculated[product_name] += item['quantity']
+    stock_obj.stock_sold = StockItem(**sold)
     
-    stock_obj.stock_sold_calculated = StockItem(**sold_calculated)
+    # Calculate revenue from sold stock
+    # Harga jual: Bakso urat Rp 2000, lainnya Rp 1000
+    revenue = (
+        sold['bakso_urat'] * 2000 +
+        sold['bakso_kecil'] * 1000 +
+        sold['tahu'] * 1000 +
+        sold['somay'] * 1000 +
+        sold['pangsit_malang'] * 1000 +
+        sold['soun'] * 1000
+    )
+    stock_obj.revenue_from_stock = revenue
     
-    # Calculate wasted (brought - remaining - sold)
-    # For pangsit and soun, remaining should be 0 (habis atau rugi)
-    wasted = {
-        'bakso_urat': max(0, stock_obj.stock_brought.bakso_urat - stock_obj.stock_remaining.bakso_urat - sold_calculated['bakso_urat']),
-        'bakso_kecil': max(0, stock_obj.stock_brought.bakso_kecil - stock_obj.stock_remaining.bakso_kecil - sold_calculated['bakso_kecil']),
-        'tahu': max(0, stock_obj.stock_brought.tahu - stock_obj.stock_remaining.tahu - sold_calculated['tahu']),
-        'somay': max(0, stock_obj.stock_brought.somay - stock_obj.stock_remaining.somay - sold_calculated['somay']),
-        'pangsit_malang': max(0, stock_obj.stock_brought.pangsit_malang - sold_calculated['pangsit_malang']),  # No remaining carried back
-        'soun': max(0, stock_obj.stock_brought.soun - sold_calculated['soun'])  # No remaining carried back
-    }
+    # Calculate production cost from sold stock
+    # Biaya produksi: Bakso urat Rp 1300, lainnya Rp 650
+    production_cost = (
+        sold['bakso_urat'] * 1300 +
+        sold['bakso_kecil'] * 650 +
+        sold['tahu'] * 650 +
+        sold['somay'] * 650 +
+        sold['pangsit_malang'] * 650 +
+        sold['soun'] * 650
+    )
+    stock_obj.production_cost_from_stock = production_cost
     
-    stock_obj.stock_wasted = StockItem(**wasted)
     stock_obj.updated_at = datetime.now(timezone.utc)
     
     # Update in database
