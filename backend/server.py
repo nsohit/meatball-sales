@@ -121,6 +121,42 @@ class MonthlySummary(BaseModel):
     days_count: int
     daily_summaries: List[DailySummary]
 
+class StockItem(BaseModel):
+    bakso_urat: int = 0
+    bakso_kecil: int = 0
+    tahu: int = 0
+    somay: int = 0
+    pangsit_malang: int = 0
+    soun: int = 0
+
+class DailyStock(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    date: str
+    stock_brought: StockItem
+    stock_remaining: Optional[StockItem] = None
+    stock_sold_calculated: Optional[StockItem] = None
+    stock_wasted: Optional[StockItem] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class DailyStockCreate(BaseModel):
+    date: str
+    bakso_urat: int
+    bakso_kecil: int
+    tahu: int
+    somay: int
+    pangsit_malang: int
+    soun: int
+
+class DailyStockRemainingUpdate(BaseModel):
+    bakso_urat: int
+    bakso_kecil: int
+    tahu: int
+    somay: int
+    pangsit_malang: int
+    soun: int
+
 # ============= HELPER FUNCTIONS =============
 
 def calculate_package_composition(package_price: float) -> Dict:
