@@ -859,24 +859,24 @@ const StockManagementPage = () => {
             <CardDescription>Catat barang yang dibawa</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleInitialSubmit} className=\"space-y-4\">
-              <div className=\"grid grid-cols-2 gap-4\">
+            <form onSubmit={handleInitialSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 {stockItems.map((item) => (
-                  <div key={item.key} className=\"space-y-2\">
+                  <div key={item.key} className="space-y-2">
                     <Label>{item.label}</Label>
                     <Input
-                      type=\"number\"
-                      min=\"0\"
+                      type="number"
+                      min="0"
                       value={initialStock[item.key]}
                       onChange={(e) => setInitialStock({ ...initialStock, [item.key]: parseInt(e.target.value) || 0 })}
-                      placeholder=\"0\"
+                      placeholder="0"
                       data-testid={`initial-${item.key}`}
                       required
                     />
                   </div>
                 ))}
               </div>
-              <Button type=\"submit\" disabled={loading} className=\"w-full\" data-testid=\"submit-initial-stock-btn\">
+              <Button type="submit" disabled={loading} className="w-full" data-testid="submit-initial-stock-btn">
                 {loading ? 'Menyimpan...' : 'Simpan Stok Awal'}
               </Button>
             </form>
