@@ -831,10 +831,10 @@ const StockManagementPage = () => {
   ];
 
   return (
-    <div className=\"space-y-6\" data-testid=\"stock-management-page\">
+    <div className="space-y-6" data-testid="stock-management-page">
       <div>
-        <h2 className=\"text-3xl font-bold tracking-tight\">Manajemen Stok</h2>
-        <p className=\"text-muted-foreground\">Input stok barang yang dibawa dan sisa</p>
+        <h2 className="text-3xl font-bold tracking-tight">Manajemen Stok</h2>
+        <p className="text-muted-foreground">Input stok barang yang dibawa dan sisa</p>
       </div>
 
       <Card>
@@ -843,11 +843,11 @@ const StockManagementPage = () => {
         </CardHeader>
         <CardContent>
           <Input
-            type=\"date\"
+            type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
             max={getTodayDate()}
-            data-testid=\"stock-date-input\"
+            data-testid="stock-date-input"
           />
         </CardContent>
       </Card>
