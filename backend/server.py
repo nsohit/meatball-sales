@@ -585,6 +585,80 @@ async def get_daily_stock(date: str):
     
     return DailyStock(**stock)
 
+@api_router.put("/stock/initial/{date}", response_model=DailyStock)
+async def update_initial_stock(date: str, stock: DailyStockCreate):
+    # Get existing stock
+    existing = await db.daily_stocks.find_one({"date": date}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Stok tidak ditemukan")
+    
+    if isinstance(existing.get('created_at'), str):
+        existing['created_at'] = datetime.fromisoformat(existing['created_at'])
+    if isinstance(existing.get('updated_at'), str):
+        existing['updated_at'] = datetime.fromisoformat(existing['updated_at'])
+    
+    stock_obj = DailyStock(**existing)
+    
+    # Update stock brought
+    stock_obj.stock_brought = StockItem(
+        bakso_urat=stock.bakso_urat,
+        bakso_kecil=stock.bakso_kecil,
+        tahu=stock.tahu,
+        somay=stock.somay,
+        pangsit_malang=stock.pangsit_malang,
+        soun=stock.soun
+    )
+    
+    # If remaining exists, recalculate sold and revenue
+    if stock_obj.stock_remaining:
+        remaining = stock_obj.stock_remaining
+        sold = {
+            'bakso_urat': stock.bakso_urat - remaining.bakso_urat,
+            'bakso_kecil': stock.bakso_kecil - remaining.bakso_kecil,
+            'tahu': stock.tahu - remaining.tahu,
+            'somay': stock.somay - remaining.somay,
+            'pangsit_malang': stock.pangsit_malang - remaining.pangsit_malang,
+            'soun': stock.soun - remaining.soun
+        }
+        
+        stock_obj.stock_sold = StockItem(**sold)
+        
+        # Recalculate revenue
+        revenue = (
+            sold['bakso_urat'] * 2000 +
+            sold['bakso_kecil'] * 1000 +
+            sold['tahu'] * 1000 +
+            sold['somay'] * 1000 +
+            sold['pangsit_malang'] * 1000 +
+            sold['soun'] * 1000
+        )
+        stock_obj.revenue_from_stock = revenue
+        
+        # Recalculate production cost
+        production_cost = (
+            sold['bakso_urat'] * 1300 +
+            sold['bakso_kecil'] * 650 +
+            sold['tahu'] * 650 +
+            sold['somay'] * 650 +
+            sold['pangsit_malang'] * 650 +
+            sold['soun'] * 650
+        )
+        stock_obj.production_cost_from_stock = production_cost
+    
+    stock_obj.updated_at = datetime.now(timezone.utc)
+    
+    # Update in database
+    doc = stock_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
+    await db.daily_stocks.update_one(
+        {"date": date},
+        {"$set": doc}
+    )
+    
+    return stock_obj
+
 @api_router.delete("/stock/{date}")
 async def delete_daily_stock(date: str):
     result = await db.daily_stocks.delete_one({"date": date})
