@@ -218,8 +218,8 @@ const TransactionPage = () => {
   return (
     <div className="space-y-6" data-testid="transaction-page">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Input Transaksi</h2>
-        <p className="text-muted-foreground">Catat penjualan paket dan minuman</p>
+        <h2 className="text-3xl font-bold tracking-tight">Input Transaksi Minuman</h2>
+        <p className="text-muted-foreground">Catat penjualan minuman (Paket bakso dikelola di menu Stok)</p>
       </div>
 
       <Card>
@@ -237,124 +237,54 @@ const TransactionPage = () => {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="paket" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="paket" data-testid="paket-tab">Paket Bakso</TabsTrigger>
-          <TabsTrigger value="minuman" data-testid="minuman-tab">Minuman</TabsTrigger>
-        </TabsList>
+      <Card>
+        <CardHeader>
+          <CardTitle>Transaksi Minuman</CardTitle>
+          <CardDescription>Input penjualan minuman</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleBeverageSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Jenis Minuman</Label>
+              <Select value={beverageType} onValueChange={setBeverageType}>
+                <SelectTrigger data-testid="beverage-type-select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Teh rosela" data-testid="beverage-teh-rosela">Teh Rosela - Rp 5.000</SelectItem>
+                  <SelectItem value="Es teh manis" data-testid="beverage-es-teh">Es Teh Manis - Rp 3.000</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <TabsContent value="paket" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Transaksi Paket</CardTitle>
-              <CardDescription>Pilih harga paket yang dibeli pelanggan</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handlePackageSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Harga Paket</Label>
-                  <Select value={packagePrice} onValueChange={setPackagePrice}>
-                    <SelectTrigger data-testid="package-price-select">
-                      <SelectValue placeholder="Pilih harga paket" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {packagePrices.map((price) => (
-                        <SelectItem key={price} value={price.toString()} data-testid={`package-price-${price}`}>
-                          {formatCurrency(price)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="space-y-2">
+              <Label>Jumlah</Label>
+              <Input
+                type="number"
+                min="1"
+                value={beverageQuantity}
+                onChange={(e) => setBeverageQuantity(e.target.value)}
+                placeholder="Masukkan jumlah"
+                data-testid="beverage-quantity-input"
+              />
+            </div>
 
-                <div className="space-y-2">
-                  <Label>Jumlah Paket</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={packageQuantity}
-                    onChange={(e) => setPackageQuantity(e.target.value)}
-                    placeholder="Berapa paket?"
-                    data-testid="package-quantity-input"
-                  />
-                </div>
+            {beverageQuantity && (
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-sm font-semibold">
+                  Total: {formatCurrency(
+                    (beverageType === 'Teh rosela' ? 5000 : 3000) * parseInt(beverageQuantity)
+                  )}
+                </p>
+              </div>
+            )}
 
-                {packagePrice && packageQuantity && (
-                  <div className="p-4 bg-muted rounded-lg space-y-2">
-                    <h4 className="font-semibold">Komposisi per Paket:</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Total: {9 + (parseFloat(packagePrice) - 10000) / 1000} pcs
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      (1 Bakso urat = 2 pcs, sisanya bakso kecil, somay, tahu, pangsit, soun)
-                    </p>
-                    <div className="mt-2 pt-2 border-t">
-                      <p className="text-sm font-semibold">
-                        Total: {parseInt(packageQuantity)} paket × {formatCurrency(parseFloat(packagePrice))} = {formatCurrency(parseFloat(packagePrice) * parseInt(packageQuantity))}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <Button type="submit" disabled={loading} className="w-full" data-testid="submit-package-btn">
-                  {loading ? 'Menyimpan...' : 'Simpan Transaksi Paket'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="minuman" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Transaksi Minuman</CardTitle>
-              <CardDescription>Input penjualan minuman</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleBeverageSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Jenis Minuman</Label>
-                  <Select value={beverageType} onValueChange={setBeverageType}>
-                    <SelectTrigger data-testid="beverage-type-select">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Teh rosela" data-testid="beverage-teh-rosela">Teh Rosela - Rp 5.000</SelectItem>
-                      <SelectItem value="Es teh manis" data-testid="beverage-es-teh">Es Teh Manis - Rp 3.000</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Jumlah</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={beverageQuantity}
-                    onChange={(e) => setBeverageQuantity(e.target.value)}
-                    placeholder="Masukkan jumlah"
-                    data-testid="beverage-quantity-input"
-                  />
-                </div>
-
-                {beverageQuantity && (
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-sm font-semibold">
-                      Total: {formatCurrency(
-                        (beverageType === 'Teh rosela' ? 5000 : 3000) * parseInt(beverageQuantity)
-                      )}
-                    </p>
-                  </div>
-                )}
-
-                <Button type="submit" disabled={loading} className="w-full" data-testid="submit-beverage-btn">
-                  {loading ? 'Menyimpan...' : 'Simpan Transaksi Minuman'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            <Button type="submit" disabled={loading} className="w-full" data-testid="submit-beverage-btn">
+              {loading ? 'Menyimpan...' : 'Simpan Transaksi Minuman'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };
