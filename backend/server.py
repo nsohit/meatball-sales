@@ -670,6 +670,331 @@ async def delete_daily_stock(date: str):
         raise HTTPException(status_code=404, detail="Stok tidak ditemukan")
     return {"message": "Stok berhasil dihapus"}
 
+# Export Endpoints
+@api_router.get("/export/daily/{date}")
+async def export_daily_report(date: str):
+    """Export laporan harian ke Excel"""
+    # Get daily summary
+    summary = await get_daily_summary(date)
+    
+    # Get stock data
+    stock_data = await db.daily_stocks.find_one({"date": date}, {"_id": 0})
+    
+    # Get beverage transactions
+    beverage_txns = await db.beverage_transactions.find({"date": date}, {"_id": 0}).to_list(1000)
+    
+    # Create Excel workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"Laporan {date}"
+    
+    # Styling
+    header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True, size=12)
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    # Title
+    ws['A1'] = f"LAPORAN HARIAN BAKSO BUSINESS"
+    ws['A1'].font = Font(bold=True, size=14)
+    ws.merge_cells('A1:D1')
+    
+    ws['A2'] = f"Tanggal: {date}"
+    ws['A2'].font = Font(bold=True)
+    ws.merge_cells('A2:D2')
+    
+    # Summary Section
+    row = 4
+    ws[f'A{row}'] = "RINGKASAN KEUANGAN"
+    ws[f'A{row}'].font = Font(bold=True, size=12)
+    ws[f'A{row}'].fill = header_fill
+    ws[f'A{row}'].font = Font(color="FFFFFF", bold=True)
+    ws.merge_cells(f'A{row}:B{row}')
+    
+    row += 1
+    ws[f'A{row}'] = "Total Pendapatan"
+    ws[f'B{row}'] = f"Rp {summary.total_revenue:,.0f}"
+    row += 1
+    ws[f'A{row}'] = "Biaya Produksi"
+    ws[f'B{row}'] = f"Rp {summary.total_production_cost:,.0f}"
+    row += 1
+    ws[f'A{row}'] = "Biaya Tetap"
+    ws[f'B{row}'] = f"Rp {summary.fixed_costs:,.0f}"
+    row += 1
+    ws[f'A{row}'] = "Laba Bersih"
+    ws[f'B{row}'] = f"Rp {summary.net_profit:,.0f}"
+    ws[f'B{row}'].font = Font(bold=True)
+    row += 1
+    ws[f'A{row}'] = "Bonus Karyawan"
+    ws[f'B{row}'] = f"Rp {summary.employee_bonus:,.0f}"
+    ws[f'B{row}'].font = Font(bold=True, color="00B050")
+    
+    # Stock Section
+    if stock_data:
+        row += 3
+        ws[f'A{row}'] = "DATA STOK BAKSO"
+        ws[f'A{row}'].font = Font(bold=True, size=12)
+        ws[f'A{row}'].fill = header_fill
+        ws[f'A{row}'].font = Font(color="FFFFFF", bold=True)
+        ws.merge_cells(f'A{row}:D{row}')
+        
+        row += 1
+        headers = ['Item', 'Bawaan', 'Sisa', 'Terjual']
+        for col, header in enumerate(headers, start=1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+            cell.alignment = Alignment(horizontal='center')
+        
+        if stock_data.get('stock_remaining'):
+            stock_items = [
+                ('Bakso Urat', 'bakso_urat'),
+                ('Bakso Kecil', 'bakso_kecil'),
+                ('Tahu', 'tahu'),
+                ('Somay', 'somay'),
+                ('Pangsit Malang', 'pangsit_malang'),
+                ('Soun', 'soun')
+            ]
+            
+            for label, key in stock_items:
+                row += 1
+                ws[f'A{row}'] = label
+                ws[f'B{row}'] = stock_data['stock_brought'][key]
+                ws[f'C{row}'] = stock_data['stock_remaining'][key]
+                ws[f'D{row}'] = stock_data['stock_sold'][key]
+            
+            row += 1
+            ws[f'A{row}'] = "Pendapatan dari Stok"
+            ws[f'B{row}'] = f"Rp {stock_data.get('revenue_from_stock', 0):,.0f}"
+            ws[f'B{row}'].font = Font(bold=True)
+            ws.merge_cells(f'B{row}:D{row}')
+    
+    # Beverage Section
+    if beverage_txns:
+        row += 3
+        ws[f'A{row}'] = "TRANSAKSI MINUMAN"
+        ws[f'A{row}'].font = Font(bold=True, size=12)
+        ws[f'A{row}'].fill = header_fill
+        ws[f'A{row}'].font = Font(color="FFFFFF", bold=True)
+        ws.merge_cells(f'A{row}:D{row}')
+        
+        row += 1
+        headers = ['Produk', 'Jumlah', 'Total Harga', 'Biaya Produksi']
+        for col, header in enumerate(headers, start=1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+        
+        for txn in beverage_txns:
+            row += 1
+            ws[f'A{row}'] = txn['product_name']
+            ws[f'B{row}'] = txn['quantity']
+            ws[f'C{row}'] = f"Rp {txn['total_price']:,.0f}"
+            ws[f'D{row}'] = f"Rp {txn['total_production_cost']:,.0f}"
+    
+    # Adjust column widths
+    ws.column_dimensions['A'].width = 20
+    ws.column_dimensions['B'].width = 15
+    ws.column_dimensions['C'].width = 15
+    ws.column_dimensions['D'].width = 15
+    
+    # Save to BytesIO
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    filename = f"Laporan_Harian_{date}.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@api_router.get("/export/monthly/{year}/{month}")
+async def export_monthly_report(year: int, month: int):
+    """Export laporan bulanan ke Excel"""
+    # Get monthly summary
+    summary = await get_monthly_summary(year, month)
+    
+    # Create Excel workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"Laporan {year}-{month:02d}"
+    
+    # Styling
+    header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True, size=12)
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    # Title
+    ws['A1'] = f"LAPORAN BULANAN BAKSO BUSINESS"
+    ws['A1'].font = Font(bold=True, size=14)
+    ws.merge_cells('A1:E1')
+    
+    ws['A2'] = f"Periode: {year}-{month:02d}"
+    ws['A2'].font = Font(bold=True)
+    ws.merge_cells('A2:E2')
+    
+    # Summary Section
+    row = 4
+    ws[f'A{row}'] = "RINGKASAN BULANAN"
+    ws[f'A{row}'].font = Font(bold=True, size=12)
+    ws[f'A{row}'].fill = header_fill
+    ws[f'A{row}'].font = Font(color="FFFFFF", bold=True)
+    ws.merge_cells(f'A{row}:B{row}')
+    
+    row += 1
+    ws[f'A{row}'] = "Total Pendapatan"
+    ws[f'B{row}'] = f"Rp {summary.total_revenue:,.0f}"
+    row += 1
+    ws[f'A{row}'] = "Total Biaya Produksi"
+    ws[f'B{row}'] = f"Rp {summary.total_production_cost:,.0f}"
+    row += 1
+    ws[f'A{row}'] = "Total Biaya Tetap"
+    ws[f'B{row}'] = f"Rp {summary.total_fixed_costs:,.0f}"
+    row += 1
+    ws[f'A{row}'] = "Total Laba Bersih"
+    ws[f'B{row}'] = f"Rp {summary.total_net_profit:,.0f}"
+    ws[f'B{row}'].font = Font(bold=True)
+    row += 1
+    ws[f'A{row}'] = "Total Bonus Karyawan"
+    ws[f'B{row}'] = f"Rp {summary.total_employee_bonus:,.0f}"
+    ws[f'B{row}'].font = Font(bold=True, color="00B050")
+    row += 1
+    ws[f'A{row}'] = "Jumlah Hari Operasional"
+    ws[f'B{row}'] = summary.days_count
+    
+    # Daily Details
+    row += 3
+    ws[f'A{row}'] = "DETAIL HARIAN"
+    ws[f'A{row}'].font = Font(bold=True, size=12)
+    ws[f'A{row}'].fill = header_fill
+    ws[f'A{row}'].font = Font(color="FFFFFF", bold=True)
+    ws.merge_cells(f'A{row}:E{row}')
+    
+    row += 1
+    headers = ['Tanggal', 'Pendapatan', 'Biaya Produksi', 'Laba Bersih', 'Bonus']
+    for col, header in enumerate(headers, start=1):
+        cell = ws.cell(row=row, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.border = border
+        cell.alignment = Alignment(horizontal='center')
+    
+    for daily in summary.daily_summaries:
+        row += 1
+        ws[f'A{row}'] = daily.date
+        ws[f'B{row}'] = f"Rp {daily.total_revenue:,.0f}"
+        ws[f'C{row}'] = f"Rp {daily.total_production_cost:,.0f}"
+        ws[f'D{row}'] = f"Rp {daily.net_profit:,.0f}"
+        ws[f'E{row}'] = f"Rp {daily.employee_bonus:,.0f}"
+    
+    # Adjust column widths
+    ws.column_dimensions['A'].width = 15
+    ws.column_dimensions['B'].width = 18
+    ws.column_dimensions['C'].width = 18
+    ws.column_dimensions['D'].width = 18
+    ws.column_dimensions['E'].width = 15
+    
+    # Save to BytesIO
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    filename = f"Laporan_Bulanan_{year}_{month:02d}.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@api_router.get("/export/stock/{date}")
+async def export_stock_data(date: str):
+    """Export data stok ke Excel"""
+    stock_data = await db.daily_stocks.find_one({"date": date}, {"_id": 0})
+    
+    if not stock_data:
+        raise HTTPException(status_code=404, detail="Data stok tidak ditemukan")
+    
+    # Create Excel workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"Stok {date}"
+    
+    # Styling
+    header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True, size=12)
+    
+    # Title
+    ws['A1'] = f"DATA STOK BAKSO - {date}"
+    ws['A1'].font = Font(bold=True, size=14)
+    ws.merge_cells('A1:D1')
+    
+    # Headers
+    row = 3
+    headers = ['Item', 'Bawaan', 'Sisa', 'Terjual']
+    for col, header in enumerate(headers, start=1):
+        cell = ws.cell(row=row, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center')
+    
+    # Data
+    stock_items = [
+        ('Bakso Urat', 'bakso_urat'),
+        ('Bakso Kecil', 'bakso_kecil'),
+        ('Tahu', 'tahu'),
+        ('Somay', 'somay'),
+        ('Pangsit Malang', 'pangsit_malang'),
+        ('Soun', 'soun')
+    ]
+    
+    for label, key in stock_items:
+        row += 1
+        ws[f'A{row}'] = label
+        ws[f'B{row}'] = stock_data['stock_brought'][key]
+        ws[f'C{row}'] = stock_data.get('stock_remaining', {}).get(key, '-')
+        ws[f'D{row}'] = stock_data.get('stock_sold', {}).get(key, '-')
+    
+    # Summary
+    if stock_data.get('revenue_from_stock'):
+        row += 2
+        ws[f'A{row}'] = "Pendapatan dari Stok:"
+        ws[f'B{row}'] = f"Rp {stock_data['revenue_from_stock']:,.0f}"
+        ws[f'B{row}'].font = Font(bold=True, color="00B050")
+    
+    # Adjust column widths
+    ws.column_dimensions['A'].width = 20
+    ws.column_dimensions['B'].width = 15
+    ws.column_dimensions['C'].width = 15
+    ws.column_dimensions['D'].width = 15
+    
+    # Save to BytesIO
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    filename = f"Data_Stok_{date}.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
 # Include the router in the main app
 app.include_router(api_router)
 
