@@ -757,7 +757,7 @@ const StockManagementPage = () => {
     setLoading(true);
     try {
       await axios.put(`${API}/stock/remaining/${selectedDate}`, remainingStock);
-      toast.success('Stok sisa berhasil dicatat');
+      toast.success(editMode.remaining ? 'Stok sisa berhasil diupdate' : 'Stok sisa berhasil dicatat');
       setRemainingStock({
         bakso_urat: '',
         bakso_kecil: '',
@@ -769,7 +769,7 @@ const StockManagementPage = () => {
       fetchStock();
     } catch (error) {
       console.error('Error updating remaining stock:', error);
-      toast.error(error.response?.data?.detail || 'Gagal mencatat stok sisa');
+      toast.error(error.response?.data?.detail || 'Gagal menyimpan stok sisa');
     } finally {
       setLoading(false);
     }
