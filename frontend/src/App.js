@@ -1023,6 +1023,9 @@ const Layout = ({ children }) => {
                 <Link to="/transaksi" data-testid="nav-transaksi">Transaksi</Link>
               </Button>
               <Button variant="ghost" asChild>
+                <Link to="/stok" data-testid="nav-stok">Stok</Link>
+              </Button>
+              <Button variant="ghost" asChild>
                 <Link to="/laporan" data-testid="nav-laporan">Laporan Harian</Link>
               </Button>
               <Button variant="ghost" asChild>
