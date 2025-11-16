@@ -1558,10 +1558,13 @@ const Layout = ({ children }) => {
                 <Link to="/" data-testid="nav-dashboard">Dashboard</Link>
               </Button>
               <Button variant="ghost" asChild>
-                <Link to="/transaksi-paket" data-testid="nav-transaksi-paket">Transaksi Paket</Link>
+                <Link to="/transaksi-paket" data-testid="nav-transaksi-paket">Paket</Link>
               </Button>
               <Button variant="ghost" asChild>
-                <Link to="/transaksi" data-testid="nav-transaksi">Transaksi Minuman</Link>
+                <Link to="/transaksi" data-testid="nav-transaksi">Minuman</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link to="/pengeluaran" data-testid="nav-pengeluaran">Pengeluaran</Link>
               </Button>
               <Button variant="ghost" asChild>
                 <Link to="/stok" data-testid="nav-stok">Stok</Link>
