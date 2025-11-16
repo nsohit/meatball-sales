@@ -74,7 +74,7 @@ Sistem manajemen bisnis bakso berbasis web yang lengkap dengan fitur manajemen s
 ### Untuk Development
 ```bash
 # Node.js & npm
-node >= 16.x
+node >= 16.x (Rekomendasi: 16 LTS untuk Pi 3B, 18+ untuk PC)
 npm >= 8.x (atau yarn >= 1.22)
 
 # Python
@@ -84,6 +84,14 @@ pip >= 20.x
 # MongoDB
 MongoDB >= 4.x
 ```
+
+### 📦 Node Version Support
+- **Node 16 LTS**: ✅ Fully supported (optimized untuk Raspberry Pi 3B)
+- **Node 18 LTS**: ✅ Recommended untuk development
+- **Node 20**: ✅ Supported
+- **Node 14**: ❌ Not supported (EOL)
+
+📄 **Untuk migrate ke Node 16**, lihat: [MIGRATE_NODE16.md](MIGRATE_NODE16.md)
 
 ### Untuk Raspberry Pi
 ```bash
