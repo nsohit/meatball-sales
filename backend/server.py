@@ -413,14 +413,18 @@ async def get_daily_summary(date: str):
     beverage_cost = sum(t['total_production_cost'] for t in beverage_txns)
     beverage_count = len(beverage_txns)
     
+    # Get unexpected expenses for the date
+    unexpected_expenses = await db.unexpected_expenses.find({"date": date}, {"_id": 0}).to_list(1000)
+    total_unexpected_expenses = sum(e['amount'] for e in unexpected_expenses)
+    
     # Get settings for fixed costs
     settings = await get_or_create_settings()
     fixed_costs = settings.sewa_harian + settings.gaji_karyawan_harian + settings.gaji_owner_harian
     
-    # Calculate totals
+    # Calculate totals (include unexpected expenses)
     total_revenue = package_revenue + beverage_revenue
     total_production_cost = package_cost + beverage_cost
-    net_profit = total_revenue - total_production_cost - fixed_costs
+    net_profit = total_revenue - total_production_cost - fixed_costs - total_unexpected_expenses
     
     # Calculate employee bonus
     employee_bonus = 0
