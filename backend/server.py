@@ -965,6 +965,30 @@ async def export_monthly_report(year: int, month: int):
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
+# Unexpected Expenses
+@api_router.post("/unexpected-expenses", response_model=UnexpectedExpense)
+async def create_unexpected_expense(expense: UnexpectedExpenseCreate):
+    expense_obj = UnexpectedExpense(**expense.model_dump())
+    doc = expense_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.unexpected_expenses.insert_one(doc)
+    return expense_obj
+
+@api_router.get("/unexpected-expenses/{date}", response_model=List[UnexpectedExpense])
+async def get_unexpected_expenses(date: str):
+    expenses = await db.unexpected_expenses.find({"date": date}, {"_id": 0}).to_list(1000)
+    for e in expenses:
+        if isinstance(e.get('created_at'), str):
+            e['created_at'] = datetime.fromisoformat(e['created_at'])
+    return expenses
+
+@api_router.delete("/unexpected-expenses/{expense_id}")
+async def delete_unexpected_expense(expense_id: str):
+    result = await db.unexpected_expenses.delete_one({"id": expense_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Pengeluaran tidak ditemukan")
+    return {"message": "Pengeluaran berhasil dihapus"}
+
 @api_router.get("/export/stock/{date}")
 async def export_stock_data(date: str):
     """Export data stok ke Excel"""
