@@ -1,0 +1,20 @@
+# NPM Configuration for Node 16 Compatibility
+# Copy this to .npmrc when using Node 16
+
+# Use legacy peer deps untuk avoid conflict
+legacy-peer-deps=true
+
+# Engine strict untuk enforce Node 16
+engine-strict=false
+
+# Lockfile version
+lockfile-version=2
+
+# Auto install peer dependencies
+auto-install-peers=true
+
+# Prefer offline untuk speed up
+prefer-offline=false
+
+# Registry
+registry=https://registry.npmjs.org/
