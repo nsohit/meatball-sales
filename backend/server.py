@@ -170,6 +170,19 @@ class DailyStockRemainingUpdate(BaseModel):
     pangsit_malang: int
     soun: int
 
+class UnexpectedExpense(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    date: str
+    description: str
+    amount: float
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class UnexpectedExpenseCreate(BaseModel):
+    date: str
+    description: str
+    amount: float
+
 # ============= HELPER FUNCTIONS =============
 
 def calculate_package_composition(package_price: float) -> Dict:
