@@ -407,6 +407,183 @@ const TransactionPaketPage = () => {
   );
 };
 
+// Unexpected Expenses Component
+const UnexpectedExpensesPage = () => {
+  const [selectedDate, setSelectedDate] = useState(getTodayDate());
+  const [expenses, setExpenses] = useState([]);
+  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchExpenses();
+  }, [selectedDate]);
+
+  const fetchExpenses = async () => {
+    try {
+      const response = await axios.get(`${API}/unexpected-expenses/${selectedDate}`);
+      setExpenses(response.data);
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!description || !amount || amount <= 0) {
+      toast.error('Isi deskripsi dan jumlah pengeluaran');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(`${API}/unexpected-expenses`, {
+        date: selectedDate,
+        description: description,
+        amount: parseFloat(amount),
+      });
+      toast.success('Pengeluaran berhasil dicatat');
+      setDescription('');
+      setAmount('');
+      fetchExpenses();
+    } catch (error) {
+      console.error('Error creating expense:', error);
+      toast.error('Gagal mencatat pengeluaran');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Hapus pengeluaran ini?')) return;
+    try {
+      await axios.delete(`${API}/unexpected-expenses/${id}`);
+      toast.success('Pengeluaran berhasil dihapus');
+      fetchExpenses();
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      toast.error('Gagal menghapus pengeluaran');
+    }
+  };
+
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+  return (
+    <div className="space-y-6" data-testid="unexpected-expenses-page">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Pengeluaran Tak Terduga</h2>
+        <p className="text-muted-foreground">Catat pengeluaran tambahan yang tidak terduga</p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Pilih Tanggal</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            max={getTodayDate()}
+            data-testid="expense-date-input"
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Tambah Pengeluaran</CardTitle>
+          <CardDescription>Input pengeluaran tak terduga hari ini</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Deskripsi</Label>
+              <Input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Contoh: Perbaikan kompor, Beli gas, dll"
+                data-testid="expense-description-input"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Jumlah (Rp)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="1000"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Masukkan jumlah"
+                data-testid="expense-amount-input"
+              />
+            </div>
+
+            <Button type="submit" disabled={loading} className="w-full" data-testid="submit-expense-btn">
+              {loading ? 'Menyimpan...' : 'Simpan Pengeluaran'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Daftar Pengeluaran Tak Terduga</CardTitle>
+          <CardDescription>
+            Total: <span className="text-lg font-bold text-red-600">{formatCurrency(totalExpenses)}</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[300px]">
+            {expenses.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4">Tidak ada pengeluaran tak terduga</p>
+            ) : (
+              <div className="space-y-3">
+                {expenses.map((expense) => (
+                  <div key={expense.id} className="flex items-center justify-between p-3 border rounded-lg" data-testid="expense-item">
+                    <div className="flex-1">
+                      <p className="font-semibold">{expense.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(expense.created_at).toLocaleTimeString('id-ID')}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-bold text-red-600">{formatCurrency(expense.amount)}</span>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(expense.id)}
+                        data-testid="delete-expense-btn"
+                      >
+                        Hapus
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {expenses.length > 0 && (
+        <Card className="bg-yellow-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-sm text-yellow-800">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <p>Pengeluaran ini akan dikurangkan dari laba bersih harian</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
 // Transaction Component (Minuman saja)
 const TransactionPage = () => {
   const [selectedDate, setSelectedDate] = useState(getTodayDate());
