@@ -321,7 +321,7 @@ rm -f package-lock.json yarn.lock
 npm install --legacy-peer-deps
 ```
 
-### Error 4: Build lambat/hang
+### Error 5: Build lambat/hang
 
 **Gejala:** Build stuck di "Creating an optimized production build..."
 
