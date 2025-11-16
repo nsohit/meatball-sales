@@ -83,6 +83,10 @@ cp package.json package.json.node18.backup
 # Gunakan versi Node 16
 cp package.node16.json package.json
 
+# Copy config files untuk Node 16
+cp .npmrc.node16 .npmrc
+cp .yarnrc.node16 .yarnrc
+
 # Verify
 cat package.json | grep "\"node\":"
 # Should show: "node": ">=16.0.0 <17.0.0"
