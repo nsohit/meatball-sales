@@ -271,7 +271,34 @@ free -h
 # Swap harus > 2GB untuk Pi 3B
 ```
 
-### Error 3: Dependencies conflict
+### Error 3: postcss-load-config tidak kompatibel
+
+```
+error postcss-load-config@6.0.1: The engine "node" is incompatible
+```
+
+**Penyebab:** postcss-load-config v6.x butuh Node 18+
+
+**Solusi:**
+```bash
+# Pastikan sudah copy .npmrc
+cp .npmrc.node16 .npmrc
+
+# Clean install
+rm -rf node_modules
+rm -f package-lock.json yarn.lock
+
+# Install dengan force resolve
+npm install --legacy-peer-deps
+
+# Atau dengan yarn:
+yarn install --ignore-engines
+
+# Jika masih error, force downgrade postcss-load-config:
+npm install postcss-load-config@4.0.1 --save-dev --legacy-peer-deps
+```
+
+### Error 4: Dependencies conflict
 
 ```
 npm ERR! Could not resolve dependency
@@ -279,11 +306,19 @@ npm ERR! Could not resolve dependency
 
 **Solusi:**
 ```bash
+# Gunakan .npmrc yang sudah disediakan
+cp .npmrc.node16 .npmrc
+
 # Force install
 npm install --legacy-peer-deps
 
 # Atau pakai yarn:
+cp .yarnrc.node16 .yarnrc
 yarn install --ignore-engines
+
+# Jika masih error, hapus lock files:
+rm -f package-lock.json yarn.lock
+npm install --legacy-peer-deps
 ```
 
 ### Error 4: Build lambat/hang
