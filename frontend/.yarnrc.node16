@@ -1,0 +1,11 @@
+# Yarn Configuration for Node 16 Compatibility
+# Copy this to .yarnrc when using Node 16
+
+# Ignore engines check
+--ignore-engines true
+
+# Ignore optional dependencies
+--ignore-optional true
+
+# Network timeout
+--network-timeout 100000
